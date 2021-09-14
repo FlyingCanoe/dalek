@@ -1,16 +1,38 @@
-# This is a sample Python script.
+import random
 
-# Press Maj+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+class Vue:
+    def __init__(self, parent):
+        self.parant=parent
+
+    def afficher_menu_initial(self):
+        print("BIENVENUE AUX DALEKS")
+        rep=input("Que voulez-vous, 1-pour partie, 2-pour score\n")
+        self.parant.demande_initiale(rep)
+
+class Jeu:
+    def __init__(self, parent):
+        self.partie = Partie()
+        self.parant=parent
+        self.nbr_dalek_par_niveau=5
+
+class Partie():
+    def __init__(self):
+        self.doc=None
+        self.largeur=12
+        self.hauteur=8
+        self.niveau=0
+        self.daleks=[]
+
+class Controleur:
+    def __init__(self):
+        self.modele=Jeu(self)
+        self.vue=Vue(self)
+
+        self.vue.afficher_menu_initial()
+
+    def demande_initiale(self, rep):
+        print(rep)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__=='__main__':
+    controler = Controleur()
