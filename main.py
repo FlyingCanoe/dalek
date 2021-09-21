@@ -5,12 +5,12 @@ import sys
 
 class Vue:
     def __init__(self, parent):
-        self.parant=parent
+        self.parent=parent
 
     def afficher_menu_initial(self):
         print("BIENVENUE AUX DALEKS")
         rep=input("Que voulez-vous, 1-pour partie, 2-pour score\n")
-        self.parant.demande_initiale(rep)
+        self.parent.demande_initiale(rep)
 
     def affcher_partie(self, partie):
         matrice = []
@@ -62,8 +62,8 @@ class Dalek:
 class Jeu:
     def __init__(self, parent):
         self.partie = None
-        self.parant = parent
-        self.nbr_dalek_par_niveau = 5
+        self.parent=parent
+        self.nbr_dalek_par_niveau=5
 
     def crée_partie(self):
         self.partie = Partie(self)
