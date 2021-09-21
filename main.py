@@ -55,11 +55,11 @@ class Jeu:
 class Partie:
     def __init__(self, parent):
         self.parant = parent
-        self.doc=None
-        self.dimx=12
-        self.dimy=8
-        self.niveau=0
-        self.daleks=[]
+        self.doc = None
+        self.dimx = 12
+        self.dimy = 8
+        self.niveau = 0
+        self.daleks = []
         self.ferrailles = []
 
     def crée_niveau(self):
