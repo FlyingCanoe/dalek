@@ -12,7 +12,6 @@ class Vue:
         rep=input("Que voulez-vous, 1-pour partie, 2-pour score\n")
         self.parent.demande_initiale(rep)
 
-
     def afficher_partie(self, partie):
         matrice = []
         for y in range(partie.dimy):
@@ -44,21 +43,16 @@ class Vue:
     def afficher_score(self, Jeu):
         print("           HIGH SCORE")
 
-
-
         for score in Jeu:
             i = 0
             i += 1
             print (i + score)
 
 
-
-
 class Ferraille:
     def __init__(self, parent, pos):
         self.parent = parent
         self.pos = pos
-
 
 
 class Dalek:
@@ -83,22 +77,27 @@ class Dalek:
         elif pos_doc_y < pos_y:
             self.pos[1] -= 1
 
-    def colision_avec_dalek(self, dalek):
-        return self.pos == dalek.pos
+    def est_en_colison(self):
+        for dalek in self.parent.get_daleks():
+            if dalek is not self:
+                if self.pos == dalek.pos:
+                    return True
+        return False
 
 
 class Jeu:
     def __init__(self, parent):
         self.partie = None
         self.parent=parent
-        self.nbr_dalek_par_niveau=5
+        self.nbr_dalek_par_niveau = 0
         self.score = []
 
     def crée_partie(self):
         self.partie = Partie(self)
         self.partie.crée_niveau()
 
-    def bouger_doc(self):
+    def bouger_doc(self, direction):
+        self.partie.doc.bouger(direction)
         self.partie.bouger_dalek()
         self.partie.colison_daleks()
 
@@ -143,18 +142,46 @@ class Partie:
     def get_doc(self):
         return self.doc
 
+    def get_daleks(self):
+        return self.daleks
+
     def colison_daleks(self):
-        dalek_survivant = []
-        for dalek1 in self.daleks:
-            for dalek2 in self.daleks:
-                if dalek1 is dalek2:
-                    continue
+        daleks_mort = []
+        daleks_vivent = []
+        for dalek in self.daleks:
+            if dalek.est_en_colison():
+                daleks_mort.append(dalek)
+            else:
+                daleks_vivent.append(dalek)
+
+        for dalek_mort in daleks_mort:
+            self.ferrailles.append(Ferraille(self, dalek_mort.pos))
+
+        self.daleks = daleks_vivent
 
 
 class Docteur:
     def __init__(self, parent, pos):
         self.parent = parent
         self.pos = pos
+
+    def bouger(self, direction):
+        pos_dif = {
+            "1": [-1, 1],
+            "2": [0, 1],
+            "3": [1, 1],
+            "4": [-1, 0],
+            "5": [0, 0],
+            "6": [1, 0],
+            "7": [-1, -1],
+            "8": [0, -1],
+            "9": [1, -1],
+        }[direction]
+
+        self.pos[0] += pos_dif[0]
+        self.pos[1] += pos_dif[1]
+
+
 
 
 class Controleur:
@@ -166,13 +193,13 @@ class Controleur:
 
     def demande_initiale(self, rep):
         self.modele.crée_partie()
-        self.vue.affcher_partie(self.modele.partie)
+        self.vue.afficher_partie(self.modele.partie)
         while True:
-            self.modele.bouger_doc()
-            self.vue.affcher_partie(self.modele.partie)
+            print()
+            self.modele.bouger_doc("9")
+            self.vue.afficher_partie(self.modele.partie)
             import time
-            time.sleep(3)
-
+            time.sleep(2)
 
 
 if __name__ == '__main__':
