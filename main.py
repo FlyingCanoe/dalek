@@ -1,7 +1,7 @@
 import random
 import os
 import sys
-
+import time
 
 class Vue:
     def __init__(self, parent):
@@ -12,12 +12,13 @@ class Vue:
         rep=input("Que voulez-vous, 1-pour partie, 2-pour score\n")
         self.parent.demande_initiale(rep)
 
-    def affcher_partie(self, partie):
+
+    def afficher_partie(self, partie):
         matrice = []
         for y in range(partie.dimy):
             ligne = []
             for x in range(partie.dimx):
-                ligne.append("-")
+                ligne.append(" ")
             matrice.append(ligne)
 
         docx = partie.doc.pos[0]
@@ -31,13 +32,38 @@ class Vue:
 
             matrice[daleky][dalekx] = "W"
 
+        for ferrailles in partie.ferrailles:
+            ferraillesx = ferrailles.pos[0]
+            ferraillesy = ferrailles.pos[1]
+
+            matrice[ferraillesy][ferraillesx] = "F"
+
         for ligne in matrice:
             print(ligne)
 
+    def afficher_score(self, Jeu):
+        print("           HIGH SCORE")
+
+
+
+        for score in Jeu:
+            i = 0
+            i += 1
+            print (i + score)
+
+
+
+
+class Ferraille:
+    def __init__(self, parent, pos):
+        self.parent = parent
+        self.pos = pos
+
+
 
 class Dalek:
-    def __init__(self, parant, pos):
-        self.parant = parant
+    def __init__(self, parent, pos):
+        self.parent = parent
         self.pos = pos
 
 
@@ -46,6 +72,7 @@ class Jeu:
         self.partie = None
         self.parent=parent
         self.nbr_dalek_par_niveau=5
+        self.score = []
 
     def crée_partie(self):
         self.partie = Partie(self)
@@ -54,7 +81,7 @@ class Jeu:
 
 class Partie:
     def __init__(self, parent):
-        self.parant = parent
+        self.parent = parent
         self.doc = None
         self.dimx = 12
         self.dimy = 8
@@ -64,7 +91,7 @@ class Partie:
 
     def crée_niveau(self):
         self.niveau += 1
-        nbr_daleks = self.niveau+self.parant.nbr_dalek_par_niveau
+        nbr_daleks = self.niveau+self.parent.nbr_dalek_par_niveau
 
         posx = random.randrange(self.dimx)
         posy = random.randrange(self.dimy)
@@ -96,12 +123,15 @@ class Controleur:
     def __init__(self):
         self.modele = Jeu(self)
         self.vue = Vue(self)
-
         self.vue.afficher_menu_initial()
 
     def demande_initiale(self, rep):
-        self.modele.crée_partie()
-        self.vue.affcher_partie(self.modele.partie)
+        if rep == 1:
+            self.modele.crée_partie()
+            self.vue.afficher_partie(self.modele.partie)
+        elif rep == 2:
+            self.vue.afficher_score()
+
 
 
 if __name__ == '__main__':
