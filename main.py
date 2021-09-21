@@ -34,22 +34,43 @@ class Vue:
         for ligne in matrice:
             print(ligne)
 
+        print()
 
 class Dalek:
-    def __init__(self, parant, pos):
-        self.parant = parant
+    def __init__(self, parent, pos):
+        self.parent = parent
         self.pos = pos
+
+    def bouger(self):
+        pos_doc = self.parent.get_pos_doc()
+        pos_doc_x = pos_doc[0]
+        pos_doc_y = pos_doc[1]
+        pos_x = self.pos[0]
+        pos_y = self.pos[1]
+
+        if pos_doc_x > pos_x:
+            self.pos[0] += 1
+        elif pos_doc_x < pos_x:
+            self.pos[0] -= 1
+
+        if pos_doc_y > pos_y:
+            self.pos[1] += 1
+        elif pos_doc_y < pos_y:
+            self.pos[1] -= 1
 
 
 class Jeu:
     def __init__(self, parent):
         self.partie = None
-        self.parant=parent
-        self.nbr_dalek_par_niveau=5
+        self.parant = parent
+        self.nbr_dalek_par_niveau = 5
 
     def crée_partie(self):
         self.partie = Partie(self)
         self.partie.crée_niveau()
+
+    def bouger_doc(self):
+        self.partie.bouger_dalek()
 
 
 class Partie:
@@ -85,6 +106,13 @@ class Partie:
 
         self.ferrailles = []
 
+    def bouger_dalek(self):
+        for dalek in self.daleks:
+            dalek.bouger()
+
+    def get_pos_doc(self):
+        return self.doc.pos
+
 
 class Docteur:
     def __init__(self, parent, pos):
@@ -102,6 +130,11 @@ class Controleur:
     def demande_initiale(self, rep):
         self.modele.crée_partie()
         self.vue.affcher_partie(self.modele.partie)
+        while True:
+            self.modele.bouger_doc()
+            self.vue.affcher_partie(self.modele.partie)
+            import time
+            time.sleep(3)
 
 
 if __name__ == '__main__':
