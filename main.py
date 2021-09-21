@@ -2,6 +2,7 @@ import random
 import os
 import sys
 import time
+from os import system, name
 
 class Vue:
     def __init__(self, parent):
@@ -13,6 +14,12 @@ class Vue:
         self.parent.demande_initiale(rep)
 
     def afficher_partie(self, partie):
+        self.clear()
+
+        niveau = partie.niveau
+        score = partie.score
+        print("NIVEAU: ", niveau, "    SCORE: ", score, "    NB ZAPPEUR: ", sep=" ")
+
         matrice = []
         for y in range(partie.dimy):
             ligne = []
@@ -40,13 +47,30 @@ class Vue:
         for ligne in matrice:
             print(ligne)
 
-    def afficher_score(self, Jeu):
+        time.sleep(5)
+
+    def afficher_score(self, parent):
+        self.clear()
         print("           HIGH SCORE")
 
-        for score in Jeu:
-            i = 0
+        hs = self.parent.modele.high_score
+        hs.sort(reverse=True)
+        i = 0
+        for high_score in hs:
             i += 1
-            print (i + score)
+            print (i," - ", high_score, sep=" ")
+
+        rep=input("appuyer sur une touche pour retourner au menu principal")
+        self.clear()
+        self.afficher_menu_initial()
+
+
+    def clear(self):
+        if name == 'nt':
+            _ = system('cls')
+
+        else:
+            _ = system('clear')
 
 
 class Ferraille:
@@ -89,8 +113,8 @@ class Jeu:
     def __init__(self, parent):
         self.partie = None
         self.parent=parent
-        self.nbr_dalek_par_niveau = 0
-        self.score = []
+        self.nbr_dalek_par_niveau=5
+        self.high_score = [100, 3200,123,420]
 
     def crée_partie(self):
         self.partie = Partie(self)
@@ -111,6 +135,7 @@ class Partie:
         self.niveau = 0
         self.daleks = []
         self.ferrailles = []
+        self.score = 5
 
     def crée_niveau(self):
         self.niveau += 1
@@ -188,7 +213,6 @@ class Controleur:
     def __init__(self):
         self.modele = Jeu(self)
         self.vue = Vue(self)
-
         self.vue.afficher_menu_initial()
 
     def demande_initiale(self, rep):
