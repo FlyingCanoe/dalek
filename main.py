@@ -36,13 +36,14 @@ class Vue:
 
         print()
 
+
 class Dalek:
     def __init__(self, parent, pos):
         self.parent = parent
         self.pos = pos
 
     def bouger(self):
-        pos_doc = self.parent.get_pos_doc()
+        pos_doc = self.parent.get_doc().pos
         pos_doc_x = pos_doc[0]
         pos_doc_y = pos_doc[1]
         pos_x = self.pos[0]
@@ -58,6 +59,9 @@ class Dalek:
         elif pos_doc_y < pos_y:
             self.pos[1] -= 1
 
+    def colision_avec_dalek(self, dalek):
+        return self.pos == dalek.pos
+
 
 class Jeu:
     def __init__(self, parent):
@@ -71,6 +75,7 @@ class Jeu:
 
     def bouger_doc(self):
         self.partie.bouger_dalek()
+        self.partie.colison_daleks()
 
 
 class Partie:
@@ -110,8 +115,15 @@ class Partie:
         for dalek in self.daleks:
             dalek.bouger()
 
-    def get_pos_doc(self):
-        return self.doc.pos
+    def get_doc(self):
+        return self.doc
+
+    def colison_daleks(self):
+        dalek_survivant = []
+        for dalek1 in self.daleks:
+            for dalek2 in self.daleks:
+                if dalek1 is dalek2:
+                    continue
 
 
 class Docteur:
