@@ -10,7 +10,7 @@ class Vue:
 
     def afficher_menu_initial(self):
         print("BIENVENUE AUX DALEKS")
-        rep=input("Que voulez-vous, 1-pour partie, 2-pour score\n")
+        rep=input("Que voulez-vous, 1-pour partie, 2-pour score, 3-pour quitter\n")
         self.parent.demande_initiale(rep)
 
     def afficher_partie(self, partie):
@@ -18,7 +18,7 @@ class Vue:
 
         niveau = partie.niveau
         score = partie.score
-        print("NIVEAU: ", niveau, "    SCORE: ", score, "    NB ZAPPEUR: ", sep=" ")
+        print("NIVEAU: ", niveau, "    SCORE: ", score, "    NB ZAPPEUR: ", sep=" ") #le HUD du joueur
 
         matrice = []
         for y in range(partie.dimy):
@@ -47,7 +47,6 @@ class Vue:
         for ligne in matrice:
             print(ligne)
 
-        time.sleep(5)
 
     def afficher_score(self, parent):
         self.clear()
@@ -136,6 +135,7 @@ class Partie:
         self.daleks = []
         self.ferrailles = []
         self.score = 5
+        self.difficulte = None
 
     def crée_niveau(self):
         self.niveau += 1
@@ -184,6 +184,14 @@ class Partie:
 
         self.daleks = daleks_vivent
 
+    def check_proximity(self, obj1, obj2):
+       proximityX = obj1.pos[0] - obj2.pos[0]
+       proximityY = obj1.pos[1] - obj2.pos[1]
+
+       return max(proximityX, proximityY)
+
+
+
 
 class Docteur:
     def __init__(self, parent, pos):
@@ -206,6 +214,25 @@ class Docteur:
         self.pos[0] += pos_dif[0]
         self.pos[1] += pos_dif[1]
 
+    def action(self, action):
+        action = {
+            "z": "z",
+            "x": "x",
+        }[action]
+
+        if action == "z":
+            self.zappeur()
+
+        elif action == "x":
+            self.tp
+
+    def zappeur (self, partie):
+        for dalek in partie.daleks:
+            prox = partie.check_proximity(self, dalek)
+            if prox == 1:
+                dalek.tuer()
+
+
 
 
 
@@ -216,15 +243,21 @@ class Controleur:
         self.vue.afficher_menu_initial()
 
     def demande_initiale(self, rep):
-        self.modele.crée_partie()
-        self.vue.afficher_partie(self.modele.partie)
-        while True:
-            print()
-            self.modele.bouger_doc("9")
+        if rep == "1":
+            self.modele.crée_partie()
             self.vue.afficher_partie(self.modele.partie)
-            import time
-            time.sleep(2)
+            while True:
+                print()
+                self.modele.bouger_doc("9")
+                self.vue.afficher_partie(self.modele.partie)
+                import time
+                time.sleep(2)
 
+        elif rep == "2":
+            self.vue.afficher_score(self, )
+
+        elif rep == "3":
+            quit()
 
 if __name__ == '__main__':
     controler = Controleur()
