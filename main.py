@@ -207,13 +207,30 @@ class Docteur:
         self.parent = parent
         self.pos = pos
 
-    def tp(self):
-        dimx = self.parent.dimx
-        dimy = self.parent.dimy
-        pos = [0, 0]
-        pos[0] = random.randrange(dimx)
-        pos[1] = random.randrange(dimy)
-        self.pos = pos
+    def tp(self, partie):
+        if partie.difficulte == 1:  # facile
+            dimx = self.parent.dimx
+            dimy = self.parent.dimy
+            pos = [0, 0]
+            pos[0] = random.randrange(dimx)
+            pos[1] = random.randrange(dimy)
+            self.pos = pos
+        elif partie.difficulte == 2:  # normal
+            dimx = self.parent.dimx
+            dimy = self.parent.dimy
+            pos = [0, 0]
+            pos[0] = random.randrange(dimx)
+            pos[1] = random.randrange(dimy)
+
+
+            self.pos = pos
+        elif partie.difficulte == 3:  # difficile
+            dimx = self.parent.dimx
+            dimy = self.parent.dimy
+            pos = [0, 0]
+            pos[0] = random.randrange(dimx)
+            pos[1] = random.randrange(dimy)
+            self.pos = pos
 
     def bouger(self, direction):
         pos_dif = {
@@ -232,12 +249,10 @@ class Docteur:
         self.pos[1] += pos_dif[1]
 
     def action(self, action):
-
         if action == "z":
             self.zappeur()
-
         elif action == "x":
-            self.tp
+            self.tp()
         else:
             self.bouger(action)
 
