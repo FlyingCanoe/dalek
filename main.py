@@ -1,12 +1,11 @@
 import random
-import os
-import sys
 import time
 from os import system, name
 
+
 class Vue:
     def __init__(self, parent):
-        self.parent=parent
+        self.parent = parent
 
     def afficher_menu_initial(self):
         print("BIENVENUE AUX DALEKS")
@@ -47,8 +46,6 @@ class Vue:
         for ligne in matrice:
             print(ligne)
 
-        time.sleep(5)
-
     def afficher_score(self, parent):
         self.clear()
         print("           HIGH SCORE")
@@ -64,13 +61,15 @@ class Vue:
         self.clear()
         self.afficher_menu_initial()
 
-
     def clear(self):
         if name == 'nt':
             _ = system('cls')
 
         else:
             _ = system('clear')
+
+    def game_over(self):
+        quit()
 
 
 class Ferraille:
@@ -101,29 +100,45 @@ class Dalek:
         elif pos_doc_y < pos_y:
             self.pos[1] -= 1
 
+    def est_en_colison_avec(self, obj):
+        if obj is not self:
+            if self.pos == obj.pos:
+                return True
+        return False
+
     def est_en_colison(self):
         for dalek in self.parent.get_daleks():
-            if dalek is not self:
-                if self.pos == dalek.pos:
-                    return True
+            if self.est_en_colison_avec(dalek):
+                return True
+
+        for ferraille in self.parent.ferrailles:
+            if self.est_en_colison_avec(ferraille):
+                return True
         return False
+
+    def tuer(self):
+        daleks = self.parent.get_daleks()
+        for i in range(len(daleks) - 1):
+            if daleks[i] is self:
+                dalek = daleks.pop(i)
+                self.parent.ferrailles.append(Ferraille(self.parent, dalek.pos))
 
 
 class Jeu:
     def __init__(self, parent):
         self.partie = None
         self.parent=parent
-        self.nbr_dalek_par_niveau=5
-        self.high_score = [100, 3200,123,420]
+        self.nbr_dalek_par_niveau = 0
+        self.high_score = [100, 3200, 123, 420]
 
     def crée_partie(self):
         self.partie = Partie(self)
         self.partie.crée_niveau()
 
-    def bouger_doc(self, direction):
-        self.partie.doc.bouger(direction)
+    def action_doc(self, action):
+        self.partie.doc.action(action)
         self.partie.bouger_dalek()
-        self.partie.colison_daleks()
+        self.partie.colison()
 
 
 class Partie:
@@ -170,24 +185,23 @@ class Partie:
     def get_daleks(self):
         return self.daleks
 
-    def colison_daleks(self):
-        daleks_mort = []
-        daleks_vivent = []
+    def colison(self):
         for dalek in self.daleks:
             if dalek.est_en_colison():
-                daleks_mort.append(dalek)
-            else:
-                daleks_vivent.append(dalek)
-
-        for dalek_mort in daleks_mort:
-            self.ferrailles.append(Ferraille(self, dalek_mort.pos))
-
-        self.daleks = daleks_vivent
+                dalek.tuer()
 
 
 class Docteur:
     def __init__(self, parent, pos):
         self.parent = parent
+        self.pos = pos
+
+    def tp(self):
+        dimx = self.parent.dimx
+        dimy = self.parent.dimy
+        pos = [0, 0]
+        pos[0] = random.randrange(dimx)
+        pos[1] = random.randrange(dimy)
         self.pos = pos
 
     def bouger(self, direction):
@@ -206,7 +220,11 @@ class Docteur:
         self.pos[0] += pos_dif[0]
         self.pos[1] += pos_dif[1]
 
-
+    def action(self, action):
+        if action == "x":
+            self.tp()
+        else:
+            self.bouger(action)
 
 
 class Controleur:
@@ -217,13 +235,12 @@ class Controleur:
 
     def demande_initiale(self, rep):
         self.modele.crée_partie()
-        self.vue.afficher_partie(self.modele.partie)
+        # self.vue.afficher_partie(self.modele.partie)
         while True:
-            print()
-            self.modele.bouger_doc("9")
             self.vue.afficher_partie(self.modele.partie)
-            import time
-            time.sleep(2)
+            self.modele.action_doc(input(":"))
+            # import time
+            # time.sleep(2)
 
 
 if __name__ == '__main__':
