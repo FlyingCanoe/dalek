@@ -3,38 +3,42 @@ import os
 import sys
 import time
 from os import system, name
+from itertools import *
 
 
-def check_proximity(obj1, obj2):
-    proximityX = abs(obj1.pos[0] - obj2.pos[0])
-    proximityY = abs(obj1.pos[1] - obj2.pos[1])
+def check_proximity(pos1, pos2): # regarde la distance entre les deux objets
+    proximityX = abs(pos1[0] - pos2[0])
+    proximityY = abs(pos1[1] - pos2[1])
 
     return max(proximityX, proximityY)
 
+
+class AppError(Exception):
+    pass
+
+
 class Vue:
     def __init__(self, parent):
-        self.parent = parent
+        self.controler = parent
 
     def afficher_menu_initial(self):
         selection = False
-        while selection == False:
+        while not selection:
             self.clear()
             print("BIENVENUE AUX DALEKS")
-            rep=input("Que voulez-vous, 1-pour partie, 2-pour score, 3-pour quitter\n")
+            rep = input("Que voulez-vous, 1-pour partie, 2-pour score, 3-pour quitter\n")
             if rep == "1" or rep == "2" or rep == "3":
                 selection = True
-        self.parent.demande_initiale(rep)
-
+        self.controler.demande_initiale(rep)
 
     def afficher_difficulte(self):
         selection = False
         while selection == False:
             print("choisir sa difficulté")
-            rep=input("1-facile, 2-moyen, 3-difficile\n")
+            rep = input("1-facile, 2-moyen, 3-difficile\n")
             if rep == "1" or rep == "2" or rep == "3":
                 selection = True
-        self.parent.changer_difficulter(rep)
-
+        self.controler.changer_difficulter(rep)
 
     def afficher_partie(self, partie):
         self.clear()
@@ -70,12 +74,12 @@ class Vue:
         for ligne in matrice:
             print(ligne)
 
-    def afficher_score(self, parent):
+    def afficher_score(self):  # affiche le menu du high score
         self.clear()
         print("           HIGH SCORE\n")
 
-        hs = self.parent.modele.high_score
-        hs.sort(reverse=True)
+        hs = self.controler.modele.high_score
+        hs.sort(reverse=True)  # mets les scores en bon ordre
         i = 0
         for high_score in hs:
             i += 1
@@ -95,20 +99,22 @@ class Vue:
     def game_over(self):
         quit()
 
+    def get_input():
+        return input(":")
+
 
 class Ferraille:
-    def __init__(self, parent, pos):
-        self.parent = parent
+    def __init__(self, pos):
         self.pos = pos
 
 
 class Dalek:
     def __init__(self, parent, pos):
-        self.parent = parent
+        self.partie = parent
         self.pos = pos
 
     def bouger(self):
-        pos_doc = self.parent.get_doc().pos
+        pos_doc = self.partie.get_doc().pos
         pos_doc_x = pos_doc[0]
         pos_doc_y = pos_doc[1]
         pos_x = self.pos[0]
@@ -131,54 +137,52 @@ class Dalek:
         return False
 
     def est_en_colison(self):
-        for dalek in self.parent.get_daleks():
+        doc = self.partie.get_doc()
+        if self.est_en_colison_avec(doc):
+            self.partie.game_over()
+
+        for dalek in self.partie.get_daleks():
             if self.est_en_colison_avec(dalek):
                 return True
 
-        for ferraille in self.parent.ferrailles:
+        for ferraille in self.partie.ferrailles:
             if self.est_en_colison_avec(ferraille):
                 return True
         return False
-
-    def tuer(self):
-        daleks = self.parent.get_daleks()
-        for i in range(len(daleks) - 1):
-            if daleks[i] is self:
-                dalek = daleks.pop(i)
-                self.parent.ferrailles.append(Ferraille(self.parent, dalek.pos))
 
 
 class Jeu:
     def __init__(self, parent):
         self.partie = None
-        self.parent=parent
-        self.nbr_dalek_par_niveau=5
-        self.high_score = [100, 3200,123,420]
+        self.controler = parent
+        self.nbr_dalek_par_niveau = 5
+        self.high_score = []
         self.difficulte = 1
 
     def crée_partie(self):
         self.partie = Partie(self)
         self.partie.crée_niveau()
 
-    def action_doc(self, action):
-        self.partie.doc.action(action)
-        self.partie.bouger_dalek()
-        self.partie.colison()
+    def jouer_tour(self, action):
+        self.partie.jouer_tour(action)
 
-
+    def game_over(self):
+        self.high_score.append(self.partie.score)
+        self.controler.game_over()
 
 
 class Partie:
     def __init__(self, parent):
-        self.parent = parent
+        self.jeu = parent
         self.doc = None
         self.dimx = 12
         self.dimy = 8
         self.niveau = 0
         self.daleks = []
         self.ferrailles = []
-        self.score = 5
-
+        self.score = 0
+        self.nbzappeur = 0
+        self.nbtp = 10000
 
     def crée_niveau(self):
         self.niveau += 1
@@ -214,51 +218,78 @@ class Partie:
         return self.daleks
 
     def colison(self):
+        self.tuer_daleks_si(Dalek.est_en_colison)
+
+    def jouer_tour(self, action):
+        self.doc.action(action)
+        self.bouger_dalek()
+        self.colison()
+        if len(self.daleks) == 0:
+            self.crée_niveau()
+
+    def tuer_daleks_si(self, f):
+        daleks_mort = []
+        daleks_vivant = []
         for dalek in self.daleks:
-            if dalek.est_en_colison():
-                dalek.tuer()
+            if f(dalek):
+                daleks_mort.append(dalek)
+                self.score += 5
+            else:
+                daleks_vivant.append(dalek)
+        self.daleks = daleks_vivant
 
+        for dalek in daleks_mort:
+            ferrail = Ferraille(dalek.pos)
+            if ferrail not in self.ferrailles:
+                self.ferrailles.append(ferrail)
 
-
-
+    def game_over(self):
+        self.jeu.game_over()
 
 
 class Docteur:
     def __init__(self, parent, pos):
-        self.parent = parent
+        self.partie = parent
         self.pos = pos
         self.nbzappeur = 1
         self.nbtp = 1
 
-    def tp(self, partie):
-        if partie.difficulte == 1:  # facile
+    def tp(self):  # le teleporteur
+        partie = self.partie
+        jeu = partie.jeu
+
+        if partie.nbtp <= 0:
+            raise AppError
+
+        partie.nbtp -= 1
+
+        if jeu.difficulte == "1":  # facile
             tplegal = False
             loop = 0
+
             while tplegal == False:
-                dimx = self.parent.dimx
-                dimy = self.parent.dimy
+                dimx = self.partie.dimx
+                dimy = self.partie.dimy
                 pos = [0, 0]
                 pos[0] = random.randrange(dimx)
                 pos[1] = random.randrange(dimy)
                 self.pos = pos
                 tplegal = True
 
-                for dalek in self.parent.modele.partie.daleks:
-                    tpillegal = check_proximity(self, dalek)
-                    if tpillegal == 0:
+                for dalek in self.partie.daleks:
+                    tpillegal = check_proximity(self.pos, dalek.pos)
+                    if tpillegal == 0: # teleporte là où il n'y a pas de daleks
                         tplegal = False
                     elif tpillegal == 1 and loop < 70:
                         tplegal = False
                     elif tpillegal == 2 and loop < 30:
                         tplegal = False
 
-                for ferraille in self.parent.ferrailles:
-                    tpillegal = check_proximity(self, ferraille)
+                for ferraille in self.partie.ferrailles: # ne teleporte pas où il y a des ferrailles
+                    tpillegal = check_proximity(self.pos, ferraille.pos)
                     if tpillegal == 0:
                         tplegal = False
                 loop += 1
-
-
 
         elif partie.difficulte == 2:  # normal
             tplegal = False
@@ -279,9 +310,6 @@ class Docteur:
                     if tpillegal == 0:
                         tplegal = False
 
-
-
-
             self.pos = pos
         elif partie.difficulte == 3:  # difficile
             tplegal = False
@@ -298,8 +326,6 @@ class Docteur:
                     if tpillegal == 0:
                         tplegal = False
 
-
-
     def bouger(self, direction):
         pos_dif = {
             "1": [-1, 1],
@@ -313,38 +339,53 @@ class Docteur:
             "9": [1, -1],
         }[direction]
 
+        pos_x = self.pos[0] + pos_dif[0]
+        pos_y = self.pos[1] + pos_dif[1]
+        pos = [pos_y, pos_x]
+
+        if pos_x == -1:
+            raise AppError
+        elif pos_x == self.partie.dimx:
+            raise AppError
+        if pos_y == -1:
+            raise AppError
+        elif pos_y == self.partie.dimy:
+            raise AppError
+
+        for ferraille in self.partie.ferrailles:
+            move_illegal = check_proximity(pos, ferraille.pos)
+            if move_illegal == 0:
+                raise AppError
+
         self.pos[0] += pos_dif[0]
         self.pos[1] += pos_dif[1]
 
-        if self.pos[0] == -1:
-            self.pos[0] = 0
-        elif self.pos[0] == self.parent.modele.partie.dimx :
-            self.pos[0] = self.parent.modele.partie.dimx -1
-        if self.pos[1] == -1:
-            self.pos[1] = 0
-        elif self.pos[1] == self.parent.modele.partie.dimy :
-            self.pos[1] = self.parent.modele.partie.dimy -1
-
-
     def action(self, action):
-        touche = False
-        while touche == False:
-            if action == "z":
-                self.zappeur()
-            elif action == "x":
-                self.tp()
-            else:
-                self.bouger(action)
+        try:
+            {
+                "z": self.zappeur,
+                "x": self.tp,
+                "1": lambda: self.bouger(action),
+                "2": lambda: self.bouger(action),
+                "3": lambda: self.bouger(action),
+                "4": lambda: self.bouger(action),
+                "5": lambda: self.bouger(action),
+                "6": lambda: self.bouger(action),
+                "7": lambda: self.bouger(action),
+                "8": lambda: self.bouger(action),
+                "9": lambda: self.bouger(action),
+            }[action]()
+        except KeyError:
+            raise AppError
 
+    def zappeur (self):
+        partie = self.partie
 
-    def zappeur (self, partie):
-        for dalek in partie.daleks:
-            prox = partie.check_proximity(self, dalek)
-            if prox == 1:
-                dalek.tuer()
+        if partie.nbzappeur <= 0:
+            raise AppError
 
-
-
+        self.partie.nbzappeur -= 1
+        partie.tuer_daleks_si(lambda dalek: 1 == check_proximity(self.pos, dalek.pos))
 
 
 class Controleur:
@@ -353,23 +394,29 @@ class Controleur:
         self.vue = Vue(self)
         self.vue.afficher_menu_initial()
 
+    def game_over(self):
+        self.vue.game_over()
+
     def demande_initiale(self, rep):
         if rep == "1":
             self.vue.afficher_difficulte()
             self.modele.crée_partie()
             while True:
                 self.vue.afficher_partie(self.modele.partie)
-                self.modele.jouer_tour(input(":"))
+                try:
+                    self.modele.jouer_tour(Vue.get_input())
+                except AppError:
+                    pass
 
         elif rep == "2":
-            self.vue.afficher_score(self)
+            self.vue.afficher_score()
 
         elif rep == "3":
             quit()
 
-
     def changer_difficulter(self, rep):
         self.modele.difficulte = rep
+
 
 if __name__ == '__main__':
     controler = Controleur()
