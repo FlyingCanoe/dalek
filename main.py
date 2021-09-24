@@ -3,14 +3,13 @@ import os
 import sys
 import time
 from os import system, name
-from itertools import *
 
 
-def check_proximity(pos1, pos2): # regarde la distance entre les deux objets
-    proximityX = abs(pos1[0] - pos2[0])
-    proximityY = abs(pos1[1] - pos2[1])
+def check_proximity(pos1, pos2):  # regarde la distance entre les deux objets
+    proximity_x = abs(pos1[0] - pos2[0])
+    proximity_y = abs(pos1[1] - pos2[1])
 
-    return max(proximityX, proximityY)
+    return max(proximity_x, proximity_y)
 
 
 class AppError(Exception):
@@ -33,7 +32,7 @@ class Vue:
 
     def afficher_difficulte(self):  # affiche le choix de difficulter
         selection = False
-        while selection == False:
+        while not selection:
             print("choisir sa difficulté")
             rep = input("1-facile, 2-moyen, 3-difficile\n")
             if rep == "1" or rep == "2" or rep == "3":
@@ -86,9 +85,9 @@ class Vue:
         i = 0
         for high_score in hs:
             i += 1
-            print (i," - ", high_score, sep=" ")
+            print(i, " - ", high_score, sep=" ")
 
-        rep=input("appuyer sur une touche pour retourner au menu principal")
+        input("appuyer sur une touche pour retourner au menu principal")
         self.clear()
         self.afficher_menu_initial()
 
@@ -189,7 +188,7 @@ class Partie:
         self.ferrailles = []
         self.score = 0
         self.nbzappeur = 0
-        self.nbtp = 10000
+        self.nbtp = 0
 
     def cree_niveau(self):  # creation d'un niveau lors d'un changement de niveau ou une nouvelle partie
         self.niveau += 1
@@ -388,7 +387,7 @@ class Docteur:
         except KeyError:
             raise AppError  # si l'input est invalide
 
-    def zappeur (self):
+    def zappeur(self):
         partie = self.partie
 
         if partie.nbzappeur <= 0:
